@@ -24,8 +24,14 @@ const userSchema = new mongoose.Schema(
       minlength: [8, "Password should be contain more than 8 character"],
       select: false,
     },
+    systemUser: {
+      type: Boolean,
+      default: false,
+      immutable: true,
+      select: false
+    }
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 userSchema.pre("save", async function(){

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ledgers from "./ledger.model.js";
 
 const accountSchema = new mongoose.Schema(
   {
@@ -13,8 +14,8 @@ const accountSchema = new mongoose.Schema(
       enum: {
         values: ["ACTIVE", "FROZEN", "CLOSED"],
         message: "Status can be either ACTIVE, FROZEN or CLOSED",
-      }, 
-      default: "ACTIVE"
+      },
+      default: "ACTIVE",
     },
     currency: {
       type: String,
@@ -27,6 +28,48 @@ const accountSchema = new mongoose.Schema(
 
 accountSchema.index({ user: 1, status: 1 });
 
+accountSchema.methods.getBalance = async function () {
+  const balanceData = await ledgers.aggregate([
+    { $match: { account: this._id } },
+    {
+      $group: {
+        _id: null,
+        totalDebit: {
+          $sum: {
+            $cond: [
+              { $eq: ["$type", "DEBIT"]},
+              "$amount",
+              0
+            ]
+          }
+        },
+        totalCredit: {
+          $sum: {
+            $cond: [
+              { $eq: ["type", "CREDIT"] },
+              "$amount",
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        balance: {
+          $subtract: ["$totalDebit", "totalCredit"]
+        }
+      }
+    }
+  ]);
+
+  if (balanceData.length === 0) {
+    return 0
+  }
+
+  return balanceData[0].balance
+};
 const accounts = mongoose.model("account", accountSchema);
 
-export default accounts
+export default accounts;

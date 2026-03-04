@@ -3,9 +3,7 @@ import { loginController, registerController } from "../controllers/auth.control
 const authRoutes = express.Router()
 
 authRoutes.post('/register', registerController)
-authRoutes.get('/register', (req, res) => {
-    res.send("registered successfully")
-})
+
 authRoutes.post('/login', loginController)
 
 export default authRoutes

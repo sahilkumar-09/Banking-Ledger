@@ -48,6 +48,48 @@ const sendRegistrationEmail = async(userEmail, name) => {
     await sendEmail(userEmail, subject, text, html)
 }
 
+const sendTransactionEmail = async (userEmail, name, amount, toAccount) => {
+  const subject = "Transaction Successful!"
+  const text = `Hello ${name}, \n\nYour transaction of ₹${amount} to account ${toAccount} was successful. \n\nBest regards, \nThe Backend Ledger Team`
+  const html = `<p>Hello ${name}, </p><p>Your transaction of ₹${amount} to account ${toAccount} was successful. </p><p>Best regards, </p>The Backend Ledger Team`
+
+  await sendEmail(userEmail, subject, text, html)
+}
+
+const sendTransactionFailureEmail = async (
+  userEmail,
+  name,
+  amount,
+  toAccount,
+  reason,
+) => {
+  const subject = "Transaction Failed ❌";
+
+  const text = `Hello ${name},
+
+Unfortunately, your transaction of ₹${amount} to account ${toAccount} has failed.
+
+Reason: ${reason}
+
+Please try again or contact support if the issue persists.
+
+Best regards,
+The Backend Ledger Team`;
+
+  const html = `
+    <p>Hello ${name},</p>
+    <p>Unfortunately, your transaction of <strong>₹${amount}</strong> to account 
+    <strong>${toAccount}</strong> has failed.</p>
+    <p><strong>Reason:</strong> ${reason}</p>
+    <p>Please try again or contact support if the issue persists.</p>
+    <p>Best regards,<br/>The Backend Ledger Team</p>
+  `;
+
+  await sendEmail(userEmail, subject, text, html);
+};
+
 export {
-    sendRegistrationEmail
+  sendRegistrationEmail,
+  sendTransactionEmail,
+  sendTransactionFailureEmail
 }
