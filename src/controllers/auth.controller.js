@@ -1,6 +1,7 @@
 import users from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendRegistrationEmail } from "../services/email.service.js";
+import tokenBlacklists from "../models/blacklist.model.js";
 
 const registerController = async (req, res) => {
   try {
@@ -49,15 +50,15 @@ const registerController = async (req, res) => {
         email: user.email,
         name: user.name,
       },
-      token
+      token,
     });
 
-    await sendRegistrationEmail(user.email, user.name)
+    await sendRegistrationEmail(user.email, user.name);
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -82,35 +83,35 @@ const loginController = async (req, res) => {
       });
     }
 
-    const isValidPassword = await user.comparePassword(password)
+    const isValidPassword = await user.comparePassword(password);
 
-      if (!isValidPassword) {
-          return res.status(401).json({
-              success: false,
-              message: "Invalid password"
-          })
-      }
-
-      const token = jwt.sign(
-        {
-          userid: user._id,
-        },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "7d",
-        },
-      );
-
-      res.cookie("token", token);
-
-      res.status(200).json({
-        success: true,
-        message: "User loggedIn successfully",
-        user: {
-          email: user.email,
-          name: user.name,
-        },
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password",
       });
+    }
+
+    const token = jwt.sign(
+      {
+        userid: user._id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+
+    res.cookie("token", token);
+
+    res.status(200).json({
+      success: true,
+      message: "User loggedIn successfully",
+      user: {
+        email: user.email,
+        name: user.name,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -120,4 +121,35 @@ const loginController = async (req, res) => {
   }
 };
 
-export { registerController, loginController };
+const userLogoutController = async (req, res) => {
+  try {
+    const token = req.cookies.token
+
+    if (!token) {
+      return res.status(200).json({
+        success: true,
+        message: "User log out successfully",
+      });
+    }
+
+    res.cookie("token", "")
+
+    await tokenBlacklists.create({
+      token: token
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: "User log out successfully"
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    })
+  }
+};
+
+export { registerController, loginController, userLogoutController };
