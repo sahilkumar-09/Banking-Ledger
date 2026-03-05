@@ -45,6 +45,6 @@ ledgerSchema.pre("deleteMany", preventLedgerModification);
 ledgerSchema.pre("updateMany", preventLedgerModification);
 ledgerSchema.pre("findOneAndReplace", preventLedgerModification);
 ledgerSchema.pre("findOneAndDelete", preventLedgerModification);
-
+ 
 const ledgers = mongoose.model("ledger", ledgerSchema)
 export default ledgers
